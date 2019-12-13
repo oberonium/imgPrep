@@ -23,14 +23,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as etree
 
+
 # get parameters
 def get_argument():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--imagedir", help="image dir")
-    parser.add_argument("-a", "--annotationdir", help="annotation xml file dir")
-    parser.add_argument("-s", "--size", help="small, med, large (bounding box)")
+    parser.add_argument("-d", "--imagedir", help = "image dir")
+    parser.add_argument("-a", "--annotationdir", help = "annotation xml file dir")
+    parser.add_argument("-s", "--size", help = "small, med, large (bounding box)")
     args = parser.parse_args()
     return args
+
 
 # flip image: up/down, left/right, up/down+left/right
 def flip(img):
@@ -104,19 +106,19 @@ def rotation(img, angle, scale):
     #    print(hist)
     #    plt.hist(img_matrix.ravel(), 256, [0,256])
     #    plt.show()
-    #print(img_matrix.shape)
+    # print(img_matrix.shape)
     rows, cols = img_matrix.shape[:2]
     rotate_matrix = cv2.getRotationMatrix2D((cols / 2.0, rows / 2.0), angle, scale)
-    #print(rotate_matrix)
+    # print(rotate_matrix)
     img_matrix_new = cv2.warpAffine(img_matrix, rotate_matrix, (cols, rows))
-    #print(img_matrix_new.shape)
-    cv2.imwrite(img[:-4] + "-rotate_"+str(angle)+".png", img_matrix_new)
+    # print(img_matrix_new.shape)
+    cv2.imwrite(img[:-4] + "-rotate_" + str(angle) + ".png", img_matrix_new)
 
     return
 
 
 def rotate_label(labelXml, angle, scale, size):
-    newXml_rot = labelXml[:-4] + "-rotate_"+str(angle)+".xml"
+    newXml_rot = labelXml[:-4] + "-rotate_" + str(angle) + ".xml"
     xmldata = etree.parse(labelXml)
     root = xmldata.getroot()
     width = int(root.find("size").find("width").text)
@@ -128,7 +130,7 @@ def rotate_label(labelXml, angle, scale, size):
     # new_width = (abs(np.sin(re_angle) * height) + abs(np.cos(re_angle) * width)) * scale
     # new_height = (abs(np.cos(re_angle) * height) + abs(np.sin(re_angle) * width)) * scale
 
-    #print(new_width, new_height)
+    # print(new_width, new_height)
     rotate_matrix = cv2.getRotationMatrix2D((new_width * 0.5, new_height * 0.5), angle, scale)
     rotate_move = np.dot(rotate_matrix, np.array([(new_width - width) * 0.5, (new_height - height) * 0.5, 0]))
     rotate_matrix[0, 2] += rotate_move[0]
@@ -179,12 +181,12 @@ def rotate_label(labelXml, angle, scale, size):
         object.find("bndbox").find("ymax").text = str(new_ymax)
 
         # remove out-of-range(img) b-box
-        if new_ymax<0 or new_ymin<0 or new_xmin<0 or new_xmax<0 or new_xmax>width or new_xmin>width or new_ymin>height or new_ymax>height:
+        if new_ymax < 0 or new_ymin < 0 or new_xmin < 0 or new_xmax < 0 or new_xmax > width or new_xmin > width or new_ymin > height or new_ymax > height:
             root.remove(object)
         else:
             xmldata.write(newXml_rot)
 
-    #print(newXml_rot)
+    # print(newXml_rot)
 
     return
 
@@ -192,23 +194,24 @@ def rotate_label(labelXml, angle, scale, size):
 if __name__ == "__main__":
     start = time.time()
 
-    argument =get_argument()
-    imglist_dir=os.listdir(argument.imagedir)
-    img_dir=argument.imagedir
-    xml_dir=argument.annotationdir
+    argument = get_argument()
+    img_list = os.listdir(argument.imagedir)
+    img_dir = argument.imagedir
+    xml_dir = argument.annotationdir
 
-    # flip left/right
-    for img in imglist_dir:
-        if os.path.exists(xml_dir+img[:-4]+".xml"):
-            flip(img_dir+img)
-            flip_label(xml_dir+img[:-4]+".xml")
+    # flip left/right up/down and lr+ud
+    for img in img_list:
+        if os.path.exists(xml_dir + img[:-4] + ".xml"):
+            flip(img_dir + img)
+            flip_label(xml_dir + img[:-4] + ".xml")
 
-    # rotation
-    for img in imglist_dir:
-        for angle in range(1,180):
-            if os.path.exists(xml_dir+img[:-4]+".xml"):
-                rotation(img_dir+img, angle, 1)
-                rotate_label(xml_dir+img[:-4]+".xml", angle, 1, "med")
+    # rotation, update imglist first
+    img_list = os.listdir(argument.imagedir)
+    for img in img_list:
+        for angle in range(1, 180):
+            if os.path.exists(xml_dir + img[:-4] + ".xml"):
+                rotation(img_dir + img, angle, 1)
+                rotate_label(xml_dir + img[:-4] + ".xml", angle, 1, "med")
             else:
                 pass
 
