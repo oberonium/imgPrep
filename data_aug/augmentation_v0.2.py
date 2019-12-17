@@ -61,6 +61,13 @@ def flip_label(labelXml):
     for object in root.iter("object"):
         xmin = width - int(object.find("bndbox").find("xmin").text)
         xmax = width - int(object.find("bndbox").find("xmax").text)
+
+        if xmin > xmax:
+            xmin = width - int(object.find("bndbox").find("xmax").text)
+            xmax = width - int(object.find("bndbox").find("xmin").text)
+        else:
+            pass
+
         object.find("bndbox").find("xmin").text = str(xmin)
         object.find("bndbox").find("xmax").text = str(xmax)
         xmldata.write(newXml_lr)
@@ -74,6 +81,13 @@ def flip_label(labelXml):
     for object in root.iter("object"):
         ymin = height - int(object.find("bndbox").find("ymin").text)
         ymax = height - int(object.find("bndbox").find("ymax").text)
+
+        if ymin > ymax:
+            ymin = height - int(object.find("bndbox").find("ymax").text)
+            ymax = height - int(object.find("bndbox").find("ymin").text)
+        else:
+            pass
+
         object.find("bndbox").find("ymin").text = str(ymin)
         object.find("bndbox").find("ymax").text = str(ymax)
         xmldata.write(newXml_up)
@@ -90,6 +104,18 @@ def flip_label(labelXml):
         xmax = width - int(object.find("bndbox").find("xmax").text)
         ymin = height - int(object.find("bndbox").find("ymin").text)
         ymax = height - int(object.find("bndbox").find("ymax").text)
+
+        if xmin > xmax:
+            xmin = width - int(object.find("bndbox").find("xmax").text)
+            xmax = width - int(object.find("bndbox").find("xmin").text)
+        else:
+            pass
+        if ymin > ymax:
+            ymin = height - int(object.find("bndbox").find("ymax").text)
+            ymax = height - int(object.find("bndbox").find("ymin").text)
+        else:
+            pass
+
         object.find("bndbox").find("xmin").text = str(xmin)
         object.find("bndbox").find("xmax").text = str(xmax)
         object.find("bndbox").find("ymin").text = str(ymin)
@@ -123,7 +149,7 @@ def rotate_label(labelXml, angle, scale, size):
     root = xmldata.getroot()
     width = int(root.find("size").find("width").text)
     height = int(root.find("size").find("height").text)
-
+    root.find("filename").text = str(root.find("filename").text) + "-rotate_" + str(angle)
     re_angle = np.deg2rad(angle)
     new_width = width
     new_height = height
@@ -171,10 +197,20 @@ def rotate_label(labelXml, angle, scale, size):
 
         concat = concat.astype(np.int32)
         rx, ry, rw, rh = cv2.boundingRect(concat)
-        new_xmin = rx
-        new_ymin = ry
-        new_xmax = rx + rw
-        new_ymax = ry + rh
+
+        if rx > rx+rw:
+            new_xmin = rx+rw
+            new_xmax = rx
+        else:
+            new_xmin = rx
+            new_xmax = rx + rw
+        if ry > ry+rh:
+            new_ymin = ry + rh
+            new_ymax = ry
+        else:
+            new_ymin = ry
+            new_ymax = ry + rh
+
         object.find("bndbox").find("xmin").text = str(new_xmin)
         object.find("bndbox").find("xmax").text = str(new_xmax)
         object.find("bndbox").find("ymin").text = str(new_ymin)
