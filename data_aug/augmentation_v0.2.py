@@ -29,7 +29,10 @@ def get_argument():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--imagedir", help = "image dir")
     parser.add_argument("-a", "--annotationdir", help = "annotation xml file dir")
-    parser.add_argument("-s", "--size", help = "small, med, large (bounding box)")
+    parser.add_argument("-s", "--box_size", default = "med", choices=["small", "med", "large"], help = "small, med, large (bounding box)")
+    parser.add_argument("-angstart", "--angle_range_start", default = 1, type=int, help = "rotate angle range: start")
+    parser.add_argument("-angend", "--angle_range_end", default = 89, type=int, help = "rotate angle range: end")
+    parser.add_argument("-interval", "--angle_range_interval", default = 1, type=int, help = "rotate angle range: end")
     args = parser.parse_args()
     return args
 
@@ -234,6 +237,11 @@ if __name__ == "__main__":
     img_list = os.listdir(argument.imagedir)
     img_dir = argument.imagedir
     xml_dir = argument.annotationdir
+    box_size = argument.box_size
+    angle_start = int(argument.angle_range_start)
+    angle_end = int(argument.angle_range_end)
+    angle_interval = int(argument.angle_range_interval)
+
 
     # flip left/right up/down and lr+ud
     for img in img_list:
@@ -244,10 +252,10 @@ if __name__ == "__main__":
     # rotation, update imglist first
     img_list = os.listdir(argument.imagedir)
     for img in img_list:
-        for angle in range(1, 180):
+        for angle in range(angle_start, angle_end, angle_interval):
             if os.path.exists(xml_dir + img[:-4] + ".xml"):
                 rotation(img_dir + img, angle, 1)
-                rotate_label(xml_dir + img[:-4] + ".xml", angle, 1, "med")
+                rotate_label(xml_dir + img[:-4] + ".xml", angle, 1, box_size)
             else:
                 pass
 
