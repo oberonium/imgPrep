@@ -11,5 +11,5 @@ image prep for object detection
 
 ### 2. for image augmentation:
 ```
- python3 augmentation_v0.2.py -d test_img3/ -a annotation/ -s med
+ python3 augmentation_v0.2.py -d test_img3/ -a annotation/ -s med -angstart 1 -angend 360 -interval 10
 ```
